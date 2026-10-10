@@ -31,6 +31,8 @@ class JackTokenizer:
         self.current_token = None
 
     def _remove_comments(self, text):
+        # Remove comentários em bloco /* ... */ e /** ... */
+        text = re.sub(r'/\*[\s\S]*?\*/', '', text)
         # Remove comentários de linha //
         text = re.sub(r'//.*', '', text)
         return text

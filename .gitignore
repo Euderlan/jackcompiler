@@ -1,0 +1,24 @@
+# Python - Arquivos compilados e cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Ambientes virtuais do Python
+venv/
+.venv/
+env/
+
+# Arquivos temporários gerados pelos seus testes no JackCompiler
+*T_my.xml
+*.out
+
+# Arquivos compactados (para não subir o zip do nand2tetris ou de entrega)
+*.zip
+
+# Arquivos do Sistema Operacional e Editores (VS Code / PyCharm / Mac)
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

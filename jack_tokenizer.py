@@ -1,4 +1,5 @@
 # jack_tokenizer.py
+import re
 
 # Tipos de Tokens
 KEYWORD = "keyword"
@@ -19,9 +20,17 @@ SYMBOLS = {
     '&', '|', '<', '>', '=', '~'
 }
 
+
 class JackTokenizer:
     def __init__(self, input_file):
-        self.raw_code = ""
+        with open(input_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        self.code = self._remove_comments(content)
         self.tokens = []
         self.current_index = -1
         self.current_token = None
+
+    def _remove_comments(self, text):
+        # Remove comentários de linha //
+        text = re.sub(r'//.*', '', text)
+        return text

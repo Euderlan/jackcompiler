@@ -36,3 +36,19 @@ class JackTokenizer:
         # Remove comentários de linha //
         text = re.sub(r'//.*', '', text)
         return text
+
+    def _tokenize(self, text):
+        # Expressão regular para capturar strings, símbolos, números e identificadores/keywords
+        pattern = r'("[^"\n]*")|([{}()\[\].,;+\-*/&|<>=~])|(\d+)|([a-zA-Z_][a-zA-Z0-9_]*)'
+        tokens = []
+        for match in re.finditer(pattern, text):
+            tokens.append(match.group(0))
+        return tokens
+
+    def has_more_tokens(self):
+        return (self.current_index + 1) < len(self.tokens)
+
+    def advance(self):
+        if self.has_more_tokens():
+            self.current_index += 1
+            self.current_token = self.tokens[self.current_index]

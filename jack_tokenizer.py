@@ -120,3 +120,22 @@ def generate_tokens_xml(jack_file_path, output_xml_path):
                 out.write(f"<identifier> {tokenizer.identifier()} </identifier>\n")
 
         out.write("</tokens>\n")
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Uso: python jack_tokenizer.py <arquivo.jack ou diretorio>")
+        sys.exit(1)
+
+    path = sys.argv[1]
+    files_to_process = []
+
+    if os.path.isfile(path) and path.endswith('.jack'):
+        files_to_process.append(path)
+    elif os.path.isdir(path):
+        for f in os.listdir(path):
+            if f.endswith('.jack'):
+                files_to_process.append(os.path.join(path, f))
+
+    for jack_file in files_to_process:
+        xml_output = jack_file.replace('.jack', 'T_my.xml')
+        generate_tokens_xml(jack_file, xml_output)
+        print(f"Arquivo de tokens gerado: {xml_output}")

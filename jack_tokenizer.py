@@ -98,4 +98,25 @@ class JackTokenizer:
     def identifier(self):
         return self.current_token
 
+def generate_tokens_xml(jack_file_path, output_xml_path):
+    tokenizer = JackTokenizer(jack_file_path)
 
+    with open(output_xml_path, 'w', encoding='utf-8') as out:
+        out.write("<tokens>\n")
+
+        while tokenizer.has_more_tokens():
+            tokenizer.advance()
+            ttype = tokenizer.token_type()
+
+            if ttype == KEYWORD:
+                out.write(f"<keyword> {tokenizer.key_word()} </keyword>\n")
+            elif ttype == SYMBOL:
+                out.write(f"<symbol> {escape_xml(tokenizer.symbol())} </symbol>\n")
+            elif ttype == INT_CONST:
+                out.write(f"<integerConstant> {tokenizer.int_val()} </integerConstant>\n")
+            elif ttype == STRING_CONST:
+                out.write(f"<stringConstant> {tokenizer.string_val()} </stringConstant>\n")
+            elif ttype == IDENTIFIER:
+                out.write(f"<identifier> {tokenizer.identifier()} </identifier>\n")
+
+        out.write("</tokens>\n")

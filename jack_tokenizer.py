@@ -22,6 +22,18 @@ SYMBOLS = {
     '&', '|', '<', '>', '=', '~'
 }
 
+def escape_xml(symbol):
+    escapes = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        '&': '&amp;'
+    }
+    return escapes.get(symbol, symbol)
+
+
+
+
 class JackTokenizer:
     def __init__(self, input_file):
         with open(input_file, 'r', encoding='utf-8') as f:

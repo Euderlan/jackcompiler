@@ -107,3 +107,63 @@ class CompilationEngine:
 
         self._process(";")
         self._close_tag("classVarDec")
+
+    def compile_subroutine(self):
+        """('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody"""
+        self._open_tag("subroutineDec")
+
+        self._process(self.tokenizer.current_token)  # constructor/function/method
+        self._process(self.tokenizer.current_token)  # void/type
+        self._process("identifier")                 # subroutineName
+        
+        self._process("(")
+        self.compile_parameter_list()
+        self._process(")")
+
+        self.compile_subroutine_body()
+
+        self._close_tag("subroutineDec")
+
+    def compile_parameter_list(self):
+        """((type varName) (',' type varName)*)?"""
+        self._open_tag("parameterList")
+
+        if self.tokenizer.current_token != ')':
+            self._process(self.tokenizer.current_token)  # type
+            self._process("identifier")                 # varName
+
+            while self.tokenizer.current_token == ',':
+                self._process(",")
+                self._process(self.tokenizer.current_token)  # type
+                self._process("identifier")                 # varName
+
+        self._close_tag("parameterList")
+
+    def compile_subroutine_body(self):
+        """'{' varDec* statements '}'"""
+        self._open_tag("subroutineBody")
+        
+        self._process("{")
+
+        while self.tokenizer.current_token == 'var':
+            self.compile_var_dec()
+
+        self.compile_statements()
+
+        self._process("}")
+        self._close_tag("subroutineBody")
+
+    def compile_var_dec(self):
+        """'var' type varName (',' varName)* ';'"""
+        self._open_tag("varDec")
+
+        self._process("var")
+        self._process(self.tokenizer.current_token)  # type
+        self._process("identifier")                 # varName
+
+        while self.tokenizer.current_token == ',':
+            self._process(",")
+            self._process("identifier")
+
+        self._process(";")
+        self._close_tag("varDec")

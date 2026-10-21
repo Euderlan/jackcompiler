@@ -71,3 +71,39 @@ class CompilationEngine:
             raise SyntaxError(
                 f"Erro Sintático: Esperado '{expected_token_or_type}', mas encontrado '{curr}' (Tipo: {ttype})"
             )
+
+    # --- Regras Sintáticas da Gramática Jack ---
+
+    def compile_class(self):
+        """'class' className '{' classVarDec* subroutineDec* '}'"""
+        self._open_tag("class")
+        
+        self._process("class")
+        self._process("identifier")  # className
+        self._process("{")
+
+        # classVarDec* ('static' | 'field')
+        while self.tokenizer.current_token in ('static', 'field'):
+            self.compile_class_var_dec()
+
+        # subroutineDec* ('constructor' | 'function' | 'method')
+        while self.tokenizer.current_token in ('constructor', 'function', 'method'):
+            self.compile_subroutine()
+
+        self._process("}")
+        self._close_tag("class")
+
+    def compile_class_var_dec(self):
+        """('static' | 'field') type varName (',' varName)* ';'"""
+        self._open_tag("classVarDec")
+
+        self._process(self.tokenizer.current_token)  # 'static' ou 'field'
+        self._process(self.tokenizer.current_token)  # type
+        self._process("identifier")                 # varName
+
+        while self.tokenizer.current_token == ',':
+            self._process(",")
+            self._process("identifier")
+
+        self._process(";")
+        self._close_tag("classVarDec")

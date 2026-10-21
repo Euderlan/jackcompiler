@@ -167,3 +167,106 @@ class CompilationEngine:
 
         self._process(";")
         self._close_tag("varDec")
+def compile_statements(self):
+    """statement*"""
+    self._open_tag("statements")
+
+    statement_keywords = ('let', 'if', 'while', 'do', 'return')
+    while self.tokenizer.current_token in statement_keywords:
+        kw = self.tokenizer.current_token
+        if kw == 'let':
+            self.compile_let()
+        elif kw == 'if':
+            self.compile_if()
+        elif kw == 'while':
+            self.compile_while()
+        elif kw == 'do':
+            self.compile_do()
+        elif kw == 'return':
+            self.compile_return()
+
+    self._close_tag("statements")
+
+def compile_let(self):
+    """'let' varName ('[' expression ']')? '=' expression ';'"""
+    self._open_tag("letStatement")
+
+    self._process("let")
+    self._process_identifier()  # Sugestão: método específico para consumir qualquer identificador
+
+    if self.tokenizer.current_token == '[':
+        self._process("[")
+        self.compile_expression()
+        self._process("]")
+
+    self._process("=")
+    self.compile_expression()
+    self._process(";")
+
+    self._close_tag("letStatement")
+
+def compile_if(self):
+    """'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?"""
+    self._open_tag("ifStatement")
+
+    self._process("if")
+    self._process("(")
+    self.compile_expression()
+    self._process(")")
+
+    self._process("{")
+    self.compile_statements()
+    self._process("}")
+
+    if self.tokenizer.current_token == 'else':
+        self._process("else")
+        self._process("{")
+        self.compile_statements()
+        self._process("}")
+
+    self._close_tag("ifStatement")
+
+def compile_while(self):
+    """'while' '(' expression ')' '{' statements '}'"""
+    self._open_tag("whileStatement")
+
+    self._process("while")
+    self._process("(")
+    self.compile_expression()
+    self._process(")")
+
+    self._process("{")
+    self.compile_statements()
+    self._process("}")
+
+    self._close_tag("whileStatement")
+
+def compile_do(self):
+    """'do' subroutineCall ';'"""
+    self._open_tag("doStatement")
+
+    self._process("do")
+    self._process_identifier()
+
+    if self.tokenizer.current_token == '.':
+        self._process(".")
+        self._process_identifier()
+
+    self._process("(")
+    self.compile_expression_list()
+    self._process(")")
+
+    self._process(";")
+    self._close_tag("doStatement")
+
+def compile_return(self):
+    """'return' expression? ';'"""
+    self._open_tag("returnStatement")
+
+    self._process("return")
+
+    if self.tokenizer.current_token != ';':
+        self.compile_expression()
+
+    self._process(";")
+    self._close_tag("returnStatement")

@@ -52,7 +52,6 @@ class CompilationEngine:
         elif ttype == "integerConstant":
             self._write(f"<integerConstant> {val} </integerConstant>")
         elif ttype == "stringConstant":
-            # Remove as aspas delimitadoras no XML
             self._write(f"<stringConstant> {val[1:-1]} </stringConstant>")
         elif ttype == "identifier":
             self._write(f"<identifier> {val} </identifier>")
@@ -167,106 +166,173 @@ class CompilationEngine:
 
         self._process(";")
         self._close_tag("varDec")
-def compile_statements(self):
-    """statement*"""
-    self._open_tag("statements")
 
-    statement_keywords = ('let', 'if', 'while', 'do', 'return')
-    while self.tokenizer.current_token in statement_keywords:
-        kw = self.tokenizer.current_token
-        if kw == 'let':
-            self.compile_let()
-        elif kw == 'if':
-            self.compile_if()
-        elif kw == 'while':
-            self.compile_while()
-        elif kw == 'do':
-            self.compile_do()
-        elif kw == 'return':
-            self.compile_return()
+    def compile_statements(self):
+        """statement*"""
+        self._open_tag("statements")
 
-    self._close_tag("statements")
+        statement_keywords = ('let', 'if', 'while', 'do', 'return')
+        while self.tokenizer.current_token in statement_keywords:
+            kw = self.tokenizer.current_token
+            if kw == 'let':
+                self.compile_let()
+            elif kw == 'if':
+                self.compile_if()
+            elif kw == 'while':
+                self.compile_while()
+            elif kw == 'do':
+                self.compile_do()
+            elif kw == 'return':
+                self.compile_return()
 
-def compile_let(self):
-    """'let' varName ('[' expression ']')? '=' expression ';'"""
-    self._open_tag("letStatement")
+        self._close_tag("statements")
 
-    self._process("let")
-    self._process_identifier()  # Sugestão: método específico para consumir qualquer identificador
+    def compile_let(self):
+        """'let' varName ('[' expression ']')? '=' expression ';'"""
+        self._open_tag("letStatement")
 
-    if self.tokenizer.current_token == '[':
-        self._process("[")
+        self._process("let")
+        self._process("identifier")
+
+        if self.tokenizer.current_token == '[':
+            self._process("[")
+            self.compile_expression()
+            self._process("]")
+
+        self._process("=")
         self.compile_expression()
-        self._process("]")
+        self._process(";")
 
-    self._process("=")
-    self.compile_expression()
-    self._process(";")
+        self._close_tag("letStatement")
 
-    self._close_tag("letStatement")
+    def compile_if(self):
+        """'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?"""
+        self._open_tag("ifStatement")
 
-def compile_if(self):
-    """'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?"""
-    self._open_tag("ifStatement")
+        self._process("if")
+        self._process("(")
+        self.compile_expression()
+        self._process(")")
 
-    self._process("if")
-    self._process("(")
-    self.compile_expression()
-    self._process(")")
-
-    self._process("{")
-    self.compile_statements()
-    self._process("}")
-
-    if self.tokenizer.current_token == 'else':
-        self._process("else")
         self._process("{")
         self.compile_statements()
         self._process("}")
 
-    self._close_tag("ifStatement")
+        if self.tokenizer.current_token == 'else':
+            self._process("else")
+            self._process("{")
+            self.compile_statements()
+            self._process("}")
 
-def compile_while(self):
-    """'while' '(' expression ')' '{' statements '}'"""
-    self._open_tag("whileStatement")
+        self._close_tag("ifStatement")
 
-    self._process("while")
-    self._process("(")
-    self.compile_expression()
-    self._process(")")
+    def compile_while(self):
+        """'while' '(' expression ')' '{' statements '}'"""
+        self._open_tag("whileStatement")
 
-    self._process("{")
-    self.compile_statements()
-    self._process("}")
-
-    self._close_tag("whileStatement")
-
-def compile_do(self):
-    """'do' subroutineCall ';'"""
-    self._open_tag("doStatement")
-
-    self._process("do")
-    self._process_identifier()
-
-    if self.tokenizer.current_token == '.':
-        self._process(".")
-        self._process_identifier()
-
-    self._process("(")
-    self.compile_expression_list()
-    self._process(")")
-
-    self._process(";")
-    self._close_tag("doStatement")
-
-def compile_return(self):
-    """'return' expression? ';'"""
-    self._open_tag("returnStatement")
-
-    self._process("return")
-
-    if self.tokenizer.current_token != ';':
+        self._process("while")
+        self._process("(")
         self.compile_expression()
+        self._process(")")
 
-    self._process(";")
-    self._close_tag("returnStatement")
+        self._process("{")
+        self.compile_statements()
+        self._process("}")
+
+        self._close_tag("whileStatement")
+
+    def compile_do(self):
+        """'do' subroutineCall ';'"""
+        self._open_tag("doStatement")
+
+        self._process("do")
+        self._process("identifier")
+
+        if self.tokenizer.current_token == '.':
+            self._process(".")
+            self._process("identifier")
+
+        self._process("(")
+        self.compile_expression_list()
+        self._process(")")
+
+        self._process(";")
+        self._close_tag("doStatement")
+
+    def compile_return(self):
+        """'return' expression? ';'"""
+        self._open_tag("returnStatement")
+
+        self._process("return")
+
+        if self.tokenizer.current_token != ';':
+            self.compile_expression()
+
+        self._process(";")
+        self._close_tag("returnStatement")
+
+    def compile_expression(self):
+        """term (op term)*"""
+        self._open_tag("expression")
+
+        self.compile_term()
+
+        while self.tokenizer.current_token in self.OP_SYMBOLS:
+            self._process(self.tokenizer.current_token)  # op
+            self.compile_term()
+
+        self._close_tag("expression")
+
+    def compile_term(self):
+        """integerConstant | stringConstant | keywordConstant | varName |
+           varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term"""
+        self._open_tag("term")
+
+        ttype = self.tokenizer.token_type()
+        curr = self.tokenizer.current_token
+
+        if ttype == "integerConstant":
+            self._process("integerConstant")
+        elif ttype == "stringConstant":
+            self._process("stringConstant")
+        elif curr in self.KEYWORD_CONSTANTS:
+            self._process(curr)
+        elif curr in self.UNARY_OP_SYMBOLS:
+            self._process(curr)
+            self.compile_term()
+        elif curr == '(':
+            self._process("(")
+            self.compile_expression()
+            self._process(")")
+        elif ttype == "identifier":
+            self._process("identifier")
+            
+            if self.tokenizer.current_token == '[':
+                self._process("[")
+                self.compile_expression()
+                self._process("]")
+            elif self.tokenizer.current_token == '(':
+                self._process("(")
+                self.compile_expression_list()
+                self._process(")")
+            elif self.tokenizer.current_token == '.':
+                self._process(".")
+                self._process("identifier")
+                self._process("(")
+                self.compile_expression_list()
+                self._process(")")
+
+        self._close_tag("term")
+
+    def compile_expression_list(self):
+        """(expression (',' expression)*)?"""
+        self._open_tag("expressionList")
+
+        if self.tokenizer.current_token != ')':
+            self.compile_expression()
+
+            while self.tokenizer.current_token == ',':
+                self._process(",")
+                self.compile_expression()
+
+        self._close_tag("expressionList")

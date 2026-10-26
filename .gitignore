@@ -11,7 +11,6 @@ venv/
 env/
 
 # Arquivos temporários gerados pelos seus testes no JackCompiler
-*T_my.xml
 *.out
 
 # Arquivos compactados (para não subir o zip do nand2tetris ou de entrega)

@@ -10,18 +10,14 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
     """
 
     def compile_class(self):
-        """Compila a estrutura completa de uma classe: 'class' className '{' classVarDec* subroutineDec* '}'"""
         self._open_tag("class")
-        
         self._process("class")
         self._process("identifier")  # className
         self._process("{")
 
-        # Processa declarações de variáveis de classe ('static' | 'field')
         while self.tokenizer.current_token in ('static', 'field'):
             self.compile_class_var_dec()
 
-        # Processa declarações de subrotinas ('constructor' | 'function' | 'method')
         while self.tokenizer.current_token in ('constructor', 'function', 'method'):
             self.compile_subroutine()
 
@@ -29,11 +25,10 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         self._close_tag("class")
 
     def compile_class_var_dec(self):
-        """Compila declarações de variáveis de classe: ('static' | 'field') type varName (',' varName)* ';'"""
         self._open_tag("classVarDec")
 
         self._process(self.tokenizer.current_token)  # 'static' ou 'field'
-        self._process(self.tokenizer.current_token)  # type
+        self._process_type()                          # Validação estrita do tipo
         self._process("identifier")                 # varName
 
         while self.tokenizer.current_token == ',':
@@ -44,11 +39,10 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         self._close_tag("classVarDec")
 
     def compile_subroutine(self):
-        """Compila declarações de subrotinas (funções/métodos/construtores)."""
         self._open_tag("subroutineDec")
 
         self._process(self.tokenizer.current_token)  # constructor/function/method
-        self._process(self.tokenizer.current_token)  # void/type
+        self._process_return_type()                 # Validação estrita de void | type
         self._process("identifier")                 # subroutineName
         
         self._process("(")
@@ -60,24 +54,21 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         self._close_tag("subroutineDec")
 
     def compile_parameter_list(self):
-        """Compila a lista de parâmetros de uma subrotina: ((type varName) (',' type varName)*)?"""
         self._open_tag("parameterList")
 
         if self.tokenizer.current_token != ')':
-            self._process(self.tokenizer.current_token)  # type
-            self._process("identifier")                 # varName
+            self._process_type()                     # Validação estrita do tipo
+            self._process("identifier")             # varName
 
             while self.tokenizer.current_token == ',':
                 self._process(",")
-                self._process(self.tokenizer.current_token)  # type
-                self._process("identifier")                 # varName
+                self._process_type()                 # Validação estrita do tipo
+                self._process("identifier")
 
         self._close_tag("parameterList")
 
     def compile_subroutine_body(self):
-        """Compila o corpo de uma subrotina: '{' varDec* statements '}'"""
         self._open_tag("subroutineBody")
-        
         self._process("{")
 
         while self.tokenizer.current_token == 'var':
@@ -89,11 +80,10 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         self._close_tag("subroutineBody")
 
     def compile_var_dec(self):
-        """Compila declarações de variáveis locais: 'var' type varName (',' varName)* ';'"""
         self._open_tag("varDec")
 
         self._process("var")
-        self._process(self.tokenizer.current_token)  # type
+        self._process_type()                         # Validação estrita do tipo
         self._process("identifier")                 # varName
 
         while self.tokenizer.current_token == ',':

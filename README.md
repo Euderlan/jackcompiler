@@ -1,34 +1,45 @@
-# JackCompiler - Entrega Parcial 1: Analisador Léxico (JackTokenizer)
+# Jack Compiler - Analisador Léxico e Sintático (Unidade 1)
 
-Este repositório contém a implementação do **Analisador Léxico** (*scanner*) para a linguagem **Jack**, desenvolvido como a primeira etapa do compilador (**JackCompiler**) proposto no curso *Nand2Tetris* (Projeto 10).
+Este repositório contém a implementação integrada do **Analisador Léxico (Scanner)** e do **Analisador Sintático (Parser)** para a linguagem **Jack**, desenvolvidos para a disciplina de Compiladores com base no projeto *Nand2Tetris* (Projetos 10 e 11).
 
 ---
 
-##  Identificação da Dupla
+## 👥 Identificação da Dupla
 * **Integrante 1:** Euderlan Freire da Silva Abreu — **Matrícula:** 20250071198
-* **Integrante 2:** Yuram ALmeida Santos — **Matrícula:** 20260060213
+* **Integrante 2:** Yuram Almeida Santos — **Matrícula:** 20260060213
 
 ---
 
-##  Especificações Técnicas e Tecnologias
-* **Linguagem de Programação:** Python 3
-* **Dependências Externas:** Nenhuma (utiliza apenas a biblioteca padrão do Python, como `re`, `os` e `sys`).
-* **Paradigma:** Orientação a Objetos (padrão arquitetural sugerido pelo livro oficial do Nand2Tetris).
+## 🛠️ Tecnologias e Especificações
+* **Linguagem:** Python 3.8+
+* **Framework de Teste:** `pytest`
+* **Paradigma:** Orientação a Objetos com Análise Sintática por Descida Recursiva (*Recursive Descent Parsing*).
 
 ---
 
-##  Estrutura do Repositório
+## 📁 Estrutura do Repositório
 
-```bash
+```text
 jackcompiler/
-│
-├── assets/
-│   ├── codigo_jack.png    # Print do código fonte (Square.jack)
-│   └── tokens_xml.png     # Print da saída do analisador léxico (SquareT_my.xml)
-├── jack_tokenizer.py      # Código-fonte principal do Analisador Léxico
-├── run_tests.py           # Script automatizado de bateria de testes
-├── .gitignore             # Configuração de arquivos ignorados pelo Git
-└── README.md              # Documentação completa do projeto
+├── README.md
+├── .gitignore
+├── assets/                  # Imagens e diagramas da documentação
+│   ├── arvore_sintatica_xml.png
+│   ├── codigo_jack.png
+│   └── tokens_xml.png
+├── arquivos-criados/        # XMLs gerados durante execuções de demonstração
+│   ├── analisador-lexico/
+│   └── analizador-sintatico/
+├── src/                     # Código-fonte do compilador
+│   ├── compilation_engine.py # Motor sintático principal (regras e validação de tipos)
+│   ├── engine_base.py        # Escrita XML, indentação, consumo e checagem de tipos
+│   ├── expressions_mixin.py # Análise sintática de expressões, termos e op
+│   ├── jack_analyzer.py     # Ponto de entrada (CLI) do compilador
+│   ├── jack_tokenizer.py    # Análise léxica, remoção de ruídos/comentários
+│   └── statements_mixin.py  # Análise sintática de comandos (if, while, let, etc.)
+└── tests/                   # Testes automatizados reproduzíveis
+    ├── fixtures/            # Gabaritos oficiais (.jack e .xml do Nand2Tetris)
+    └── test_parser.py       # Testes de integração automatizados via pytest
 ```
 
 ---

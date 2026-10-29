@@ -74,3 +74,23 @@ class EngineBase:
             raise SyntaxError(
                 f"Erro Sintático: Esperado '{expected_token_or_type}', mas encontrado '{curr}' (Tipo: {ttype})"
             )
+
+    def _process_type(self):
+        """Valida se o token atual é um tipo válido Jack ('int', 'char', 'boolean' ou nome de classe/identifier)."""
+        curr = self.tokenizer.current_token
+        ttype = self.tokenizer.token_type()
+
+        if curr in ('int', 'char', 'boolean') or ttype == 'identifier':
+            self._eat_current_token()
+        else:
+            raise SyntaxError(
+                f"Erro Sintático: Esperado um tipo ('int', 'char', 'boolean' ou identificador), "
+                f"mas encontrado '{curr}' (Tipo: {ttype})"
+            )
+
+    def _process_return_type(self):
+        """Valida se o token atual é um tipo de retorno válido ('void' ou tipo)."""
+        if self.tokenizer.current_token == 'void':
+            self._eat_current_token()
+        else:
+            self._process_type()

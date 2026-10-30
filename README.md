@@ -17,7 +17,24 @@ Este repositório contém a implementação integrada do **Analisador Léxico (S
 
 ---
 
-## 📁 Estrutura do Repositório
+## 📥 Instalação e Configuração
+
+Para clonar e configurar o repositório em sua máquina local, siga os passos abaixo:
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/seu-usuario/jackcompiler.git
+
+# 2. Entrar na pasta do projeto
+cd jackcompiler
+
+# 3. (Opcional) Instalar o pytest para execução dos testes
+pip install pytest
+```
+
+---
+
+## Estrutura do Repositório
 
 ```text
 jackcompiler/
@@ -27,112 +44,61 @@ jackcompiler/
 │   ├── arvore_sintatica_xml.png
 │   ├── codigo_jack.png
 │   └── tokens_xml.png
-├── arquivos-criados/        # XMLs gerados durante execuções de demonstração
-│   ├── analisador-lexico/
-│   └── analizador-sintatico/
-├── src/                     # Código-fonte do compilador
-│   ├── compilation_engine.py # Motor sintático principal (regras e validação de tipos)
-│   ├── engine_base.py        # Escrita XML, indentação, consumo e checagem de tipos
-│   ├── expressions_mixin.py # Análise sintática de expressões, termos e op
-│   ├── jack_analyzer.py     # Ponto de entrada (CLI) do compilador
-│   ├── jack_tokenizer.py    # Análise léxica, remoção de ruídos/comentários
+├── src/                     # Código-fonte principal do compilador
+│   ├── compilation_engine.py # Motor sintático (regras de classe e subrotina)
+│   ├── engine_base.py        # Escrita XML, indentação, consumo e validação de tipos
+│   ├── expressions_mixin.py # Análise sintática de expressões, termos e operadores
+│   ├── jack_analyzer.py     # Ponto de entrada (CLI) da aplicação
+│   ├── jack_tokenizer.py    # Análise léxica e remoção de comentários
 │   └── statements_mixin.py  # Análise sintática de comandos (if, while, let, etc.)
-└── tests/                   # Testes automatizados reproduzíveis
-    ├── fixtures/            # Gabaritos oficiais (.jack e .xml do Nand2Tetris)
-    └── test_parser.py       # Testes de integração automatizados via pytest
+└── tests/                   # Suíte de testes automatizados reproduzíveis
+    ├── fixtures/            # Gabaritos e arquivos Jack oficiais do Nand2Tetris
+    └── test_parser.py       # Testes de integração via pytest
 ```
 
 ---
 
-##  Requisitos Técnicos Implementados
+## Como Executar
 
-O **`JackTokenizer`** foi projetado para ler o arquivo fonte `.jack`, ignorar elementos irrelevantes e classificar cada token individualmente.
+O analisador sintático aceita como argumento o caminho de um arquivo `.jack` específico ou de um diretório contendo múltiplos arquivos `.jack`:
 
-### 1. Tratamento de Ruído
-A limpeza do código-fonte é realizada via Expressões Regulares (Regex) antes da etapa de tokenização:
-* **Comentários de Linha (`//`):** Removidos até o final da linha.
-* **Comentários em Bloco (`/* ... */` e `/** ... */`):** Removidos através de busca não-gananciosa.
-* **Espaços em Branco, Tabs e Quebras de Linha:** Ignorados na delimitação dos tokens.
-
-### 2. Categorização dos Tokens
-Cada token é classificado em uma das 5 categorias da linguagem Jack:
-* **`keyword`**: Palavras reservadas da linguagem (`class`, `constructor`, `function`, `method`, `field`, `static`, `var`, `int`, `char`, `boolean`, `void`, `true`, `false`, `null`, `this`, `let`, `do`, `if`, `else`, `while`, `return`).
-* **`symbol`**: Símbolos gráficos (`{`, `}`, `(`, `)`, `[`, `]`, `.`, `,`, `;`, `+`, `-`, `*`, `/`, `&`, `|`, `<`, `>`, `=`, `~`)[cite: 1, 7].
-* **`integerConstant`**: Números inteiros no intervalo $0$ a $32767$[cite: 1, 7].
-* **`stringConstant`**: Sequência de caracteres entre aspas duplas (as aspas são descartadas na extração do valor)[cite: 1, 7].
-* **`identifier`**: Nomes de variáveis, funções, métodos, construtores e classes[cite: 1, 7].
-
----
-
-##  Instruções de Compilação e Execução
-
-### Pré-requisitos
-Certifique-se de ter o Python 3.x instalado em sua máquina.
-
-### Executando em um arquivo individual `.jack`
-Para tokenizar um único arquivo e gerar a saída em XML (`T_my.xml`):
 ```bash
-python jack_tokenizer.py caminho/para/arquivo.jack
+# Executar para um arquivo individual
+python -m src.jack_analyzer tests/fixtures/Square.jack
 
+# Executar para um diretório completo
+python src/jack_analyzer.py tests/fixtures/
 ```
-##  Estratégia de Testes e Validação
 
-Escolhemos seguir a **estratégia oficial de teste do Nand2Tetris**, comparando a saída do nosso analisador léxico com os gabaritos em XML (`*T.xml`). A ideia foi garantir que o nosso tokenizador estivesse rodando 100% correto e sem erros antes de partir para a construção do *Parser*.
-
----
-
-### 1. Formatação do XML Gerado
-
-O nosso código gera os arquivos XML no módulo `generate_tokens_xml` seguindo direitinho os padrões do curso:
-
-* **Tag raiz:** O arquivo inteiro fica dentro das tags `<tokens>` no início e `</tokens>` no final.
-* **Espaços internos:** Cada linha mantém um espaço em branco entre as tags e o valor do token, tipo `<keyword> class </keyword>`.
-* **Strings sem aspas:** As aspas das cadeias de texto (`stringConstant`) são removidas na hora de salvar o valor no XML.
-* **Caractere especial tratado:** Convertemos símbolos que conflitam com a sintaxe do XML:
-  * `<` vira `&lt;`
-  * `>` vira `&gt;`
-  * `"` vira `&quot;`
-  * `&` vira `&amp;`
-* **Sem token EOF:** O arquivo fecha logo após o último token do código Jack, sem adicionar nada extra no fim.
+Ao executar o comando, o compilador processa a sintaxe e gera o arquivo da Árvore Sintática em formato XML (com o sufixo `P_my.xml`) no mesmo diretório de entrada.
 
 ---
 
-### 2. Arquivos de Teste Utilizados
+## Validação e Testes Automatizados
 
-Rodamos a bateria de testes em todos os arquivos `.jack` do Projeto 10 fornecidos pelo Nand2Tetris:
+A suíte de testes utiliza arquivos oficiais do *Nand2Tetris* armazenados em `tests/fixtures/` e compara os arquivos XML gerados com os gabaritos esperados, ignorando divergências superficiais de indentação.
 
-| Pasta do Projeto | Arquivo de Entrada (`.jack`) | Gabarito de Comparação (`.xml`) |
-| :--- | :--- | :--- |
-| `projects/10/Square/` | `Square.jack` | `SquareT.xml` |
-| `projects/10/Square/` | `Main.jack` | `MainT.xml` |
-| `projects/10/Square/` | `SquareGame.jack` | `SquareGameT.xml` |
-| `projects/10/ArrayTest/` | `Main.jack` | `MainT.xml` |
-| `projects/10/ExpressionLessSquare/` | `Square.jack` | `SquareT.xml` |
-| `projects/10/ExpressionLessSquare/` | `Main.jack` | `MainT.xml` |
+Para rodar os testes unitários e de integração, execute:
 
----
-
-### 3. Como Fizemos a Comparação
-
-Testamos a saída usando duas abordagens simples no terminal:
-
-#### A. Comparação no PowerShell (`Compare-Object`)
-No Windows, usamos o próprio PowerShell para checar se o nosso XML gerado (`*T_my.xml`) bateu linha por linha com o oficial (`*T.xml`):
-
-```powershell
-# Gerando os XMLs da pasta Square
-python jack_tokenizer.py "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\10\Square"
-
-# Comparando o resultado com o gabarito
-# Square.jack
-Compare-Object (Get-Content "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\10\Square\SquareT_my.xml") (Get-Content "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\10\Square\SquareT.xml")
-
-# Main.jack
-Compare-Object (Get-Content "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\10\Square\MainT_my.xml") (Get-Content "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\10\Square\MainT.xml")
-
-# SquareGame.jack
-Compare-Object (Get-Content "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\10\Square\SquareGameT_my.xml") (Get-Content "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\10\Square\SquareGameT.xml")
+```bash
+pytest tests/
 ```
+
+### Saída Esperada dos Testes:
+
+```text
+========================================================== test session starts ===========================================================
+platform win32 -- Python 3.13.11, pytest-9.1.1, pluggy-1.5.0
+rootdir: C:\Users\EudFr\OneDrive\Documentos\VSCODEPROJETOS\jackcompiler\jackcompiler
+collected 3 items                                                                                                                         
+
+tests\test_parser.py ...                                                                                                           [100%]
+
+=========================================================== 3 passed in 0.07s ============================================================
+```
+
+---
+
 ##  Exemplo Prático de Funcionamento
 
 Abaixo está a comparação entre o código-fonte original da linguagem Jack e o resultado gerado pelo nosso analisador léxico:
@@ -152,7 +118,14 @@ Resultado gerado pelo `JackTokenizer` após remover comentários/espaços e clas
 > **O que aconteceu na transformação:** 
 > O analisador léxico limpou todo o texto do código-fonte (removendo comentários `//` e `/* */`) e converteu cada palavra/símbolo em sua respectiva tag de token (`keyword`, `identifier`, `symbol`, etc.), gerando a lista exata esperada pelo compilador.
 
-# Referências
-Nand2Tetris — Projeto 10
+### 2. Saída do Analisador Sintático (`MainP_my.xml`)
+A estrutura hierárquica em XML gerada pelo *Parser* por descida recursiva:
 
+![Árvore Sintática em XML](assets/arvore_sintatica_xml.png)
+
+* **Descrição:** O XML final gerado representa a **Árvore Sintática (Parse Tree)** do programa. Enquanto o analisador léxico produz apenas uma lista plana de tokens soltos, o analisador sintático organiza esses tokens dentro das regras gramaticais da linguagem Jack — agrupando elementos em tags estruturais como `<class>`, `<classVarDec>`, `<subroutineDec>`, `<subroutineBody>`, `<varDec>` e `<statements>`.
+
+## Referências
+
+Nand2Tetris — Projeto 10
 Livro: The Elements of Computing Systems — Capítulo 10

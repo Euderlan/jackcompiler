@@ -1,5 +1,3 @@
-# src/jack_analyzer.py
-
 import os
 import sys
 from jack_tokenizer import JackTokenizer
@@ -14,7 +12,7 @@ def analyze_file(jack_file_path, output_vm_path):
 
 def main():
     if len(sys.argv) < 2:
-        print("Uso: python src/jack_analyzer.py <arquivo.jack ou diretorio>")
+        print("Uso: python jack_analyzer.py <arquivo.jack ou diretorio>")
         sys.exit(1)
 
     path = sys.argv[1]
@@ -27,12 +25,8 @@ def main():
             if f.endswith('.jack'):
                 files.append(os.path.join(path, f))
 
-    if not files:
-        print(f"Nenhum arquivo .jack encontrado em '{path}'.")
-        sys.exit(1)
-
     for jack_file in files:
-        out_vm = os.path.splitext(jack_file)[0] + '.vm'
+        out_vm = jack_file.replace('.jack', '.vm')
         analyze_file(jack_file, out_vm)
 
 if __name__ == "__main__":

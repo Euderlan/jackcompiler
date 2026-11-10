@@ -1,82 +1,54 @@
-# src/symbol_table.py
-
 class SymbolTable:
     """
-    Gerencia a tabela de símbolos para compilação Jack em dois escopos:
-    - Escopo de Classe (STATIC, FIELD/THIS)
-    - Escopo de Subrotina (ARG/ARGUMENT, VAR/LOCAL)
+    Gerencia a Tabela de Símbolos nos escopos de Classe e Subrotina.
     """
-
-    STATIC = "STATIC"
-    FIELD = "FIELD"
-    ARG = "ARG"
-    VAR = "VAR"
-
     def __init__(self):
-        self.class_scope = {}
-        self.subroutine_scope = {}
-        self.counts = {
-            self.STATIC: 0,
-            self.FIELD: 0,
-            self.ARG: 0,
-            self.VAR: 0
-        }
+        self.class_table = {}
+        self.subroutine_table = {}
+        self.counts = {'static': 0, 'field': 0, 'arg': 0, 'var': 0}
 
     def start_subroutine(self):
-        """Reinicia a tabela de símbolos no escopo de subrotina ao entrar em uma nova função/método."""
-        self.subroutine_scope.clear()
-        self.counts[self.ARG] = 0
-        self.counts[self.VAR] = 0
+        """Reinicia a tabela de símbolos de subrotina."""
+        self.subroutine_table.clear()
+        self.counts['arg'] = 0
+        self.counts['var'] = 0
 
-    def define(self, name: str, type_: str, kind: str):
-        """Define um novo símbolo e atribui o próximo índice sequencial disponível."""
-        kind_upper = kind.upper()
-        if kind_upper == "STATIC":
-            k = self.STATIC
-        elif kind_upper in ("FIELD", "THIS"):
-            k = self.FIELD
-        elif kind_upper in ("ARG", "ARGUMENT"):
-            k = self.ARG
-        elif kind_upper in ("VAR", "LOCAL"):
-            k = self.VAR
-        else:
-            raise ValueError(f"Tipo de variável desconhecido: {kind}")
-
+    def define(self, name: str, type_str: str, kind: str):
+        """Define uma nova variável na tabela de símbolos."""
+        k = kind.lower()
+        if k not in self.counts:
+            raise ValueError(f"Kind inválido: {kind}")
+        
         index = self.counts[k]
-        symbol_info = {"type": type_, "kind": k, "index": index}
-
-        if k in (self.STATIC, self.FIELD):
-            self.class_scope[name] = symbol_info
+        entry = {'type': type_str, 'kind': k, 'index': index}
+        
+        if k in ('static', 'field'):
+            self.class_table[name] = entry
         else:
-            self.subroutine_scope[name] = symbol_info
-
+            self.subroutine_table[name] = entry
+            
         self.counts[k] += 1
 
     def var_count(self, kind: str) -> int:
-        """Retorna o número de variáveis declaradas do tipo especificado."""
-        kind_upper = kind.upper()
-        mapping = {"STATIC": self.STATIC, "FIELD": self.FIELD, "THIS": self.FIELD,
-                   "ARG": self.ARG, "ARGUMENT": self.ARG, "VAR": self.VAR, "LOCAL": self.VAR}
-        k = mapping.get(kind_upper, kind_upper)
-        return self.counts.get(k, 0)
+        """Retorna o número de variáveis declaradas do tipo (kind) informado."""
+        return self.counts.get(kind.lower(), 0)
 
-    def _lookup(self, name: str):
-        """Busca o símbolo prioritariamente no escopo de subrotina, e depois no de classe."""
-        if name in self.subroutine_scope:
-            return self.subroutine_scope[name]
-        return self.class_scope.get(name, None)
+    def _get(self, name: str):
+        if name in self.subroutine_table:
+            return self.subroutine_table[name]
+        return self.class_table.get(name, None)
 
     def kind_of(self, name: str):
-        """Retorna o tipo de segmento da variável ('STATIC', 'FIELD', 'ARG', 'VAR') ou None."""
-        info = self._lookup(name)
-        return info["kind"] if info else None
+        """Retorna o segmento/kind da variável ('static', 'field', 'arg', 'var') ou None."""
+        res = self._get(name)
+        return res['kind'] if res else None
 
     def type_of(self, name: str):
-        """Retorna o tipo de dado da variável ou None."""
-        info = self._lookup(name)
-        return info["type"] if info else None
+        """Retorna o tipo da variável ou None."""
+        res = self._get(name)
+        return res['type'] if res else None
 
     def index_of(self, name: str):
-        """Retorna o índice da variável no segmento ou None."""
-        info = self._lookup(name)
-        return info["index"] if info else None
+        """Retorna o índice da variável ou None."""
+        res = self._get(name)
+        return res['index'] if res is not None else None

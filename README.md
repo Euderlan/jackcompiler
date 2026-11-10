@@ -1,19 +1,20 @@
-# Jack Compiler - Analisador Léxico e Sintático (Unidade 1)
+# Jack Compiler - Compilador Completo Jack para Hack VM (Projetos 10 e 11)
 
-Este repositório contém a implementação integrada do **Analisador Léxico (Scanner)** e do **Analisador Sintático (Parser)** para a linguagem **Jack**, desenvolvidos para a disciplina de Compiladores com base no projeto *Nand2Tetris* (Projetos 10 e 11).
+Este repositório contém a implementação integrada do **Compilador Jack** (`JackCompiler`), abrangendo a **Análise Léxica** (*Tokenizer*), **Análise Sintática** (*Parser*), gerenciamento de escopo via **Tabela de Símbolos** (*Symbol Table*) e a emissão de código de máquina intermediária via **Gerador de Bytecode VM** (*VM Writer*). Desenvolvido para a disciplina de Compiladores com base nos Projetos 10 e 11 do ecossistema *Nand2Tetris*.
 
 ---
 
 ## 👥 Identificação da Dupla
-* **Integrante 1:** Euderlan Freire da Silva Abreu — **Matrícula:** 20250071198
-* **Integrante 2:** Yuram Almeida Santos — **Matrícula:** 20260060213
+- **Integrante 1:** Euderlan Freire da Silva Abreu — **Matrícula:** 20250071198
+- **Integrante 2:** Yuram Almeida Santos — **Matrícula:** 20260060213
 
 ---
 
 ## 🛠️ Tecnologias e Especificações
-* **Linguagem:** Python 3.8+
-* **Framework de Teste:** `pytest`
-* **Paradigma:** Orientação a Objetos com Análise Sintática por Descida Recursiva (*Recursive Descent Parsing*).
+- **Linguagem:** Python 3.8+
+- **Framework de Teste:** `pytest`
+- **Paradigma:** Orientação a Objetos com Descida Recursiva (*Recursive Descent Parsing*) e arquitetura modular baseada em *Mixins*.
+- **Alvo de Compilação:** Bytecode da *Hack Virtual Machine* (`.vm`).
 
 ---
 
@@ -34,54 +35,58 @@ pip install pytest
 
 ---
 
-## Estrutura do Repositório
+## 📁 Estrutura do Repositório
 
 ```text
 jackcompiler/
-├── README.md
-├── .gitignore
+├── README.md                # Documentação unificada e atualizada do compilador
+├── .gitignore               # Regras para ignorar temporários, cache e artefatos .vm/.xml
 ├── assets/                  # Imagens e diagramas da documentação
 │   ├── arvore_sintatica_xml.png
 │   ├── codigo_jack.png
 │   └── tokens_xml.png
 ├── src/                     # Código-fonte principal do compilador
-│   ├── compilation_engine.py # Motor sintático (regras de classe e subrotina)
-│   ├── engine_base.py        # Escrita XML, indentação, consumo e validação de tipos
-│   ├── expressions_mixin.py # Análise sintática de expressões, termos e operadores
-│   ├── jack_analyzer.py     # Ponto de entrada (CLI) da aplicação
+│   ├── compilation_engine.py # Motor de compilação global (classes, subrotinas e prólogos)
+│   ├── engine_base.py        # Validação sintática e consumo de tokens sem ruído XML
+│   ├── expressions_mixin.py # Tradução sintática/semântica de expressões, termos e chamadas
+│   ├── statements_mixin.py  # Tradução sintática/semântica de comandos (let, if, while, do, return)
+│   ├── symbol_table.py      # Gerenciamento de tabela de símbolos (escopos de classe e método)
+│   ├── vm_writer.py          # Emissor baixo nível de instruções VM (push, pop, call, function, etc.)
 │   ├── jack_tokenizer.py    # Análise léxica e remoção de comentários
-│   └── statements_mixin.py  # Análise sintática de comandos (if, while, let, etc.)
+│   └── jack_analyzer.py     # CLI e ponto de entrada da compilação
 └── tests/                   # Suíte de testes automatizados reproduzíveis
-    ├── fixtures/            # Gabaritos e arquivos Jack oficiais do Nand2Tetris
-    └── test_parser.py       # Testes de integração via pytest
+    ├── fixtures/            # Programas Jack (.jack) e gabaritos VM oficiais (.vm)
+    ├── test_codegen.py      # Testes de geração e equivalência de Bytecode VM
+    ├── test_parser.py       # Testes legados de análise sintática XML (Projeto 10)
+    └── run_tests.py         # Script utilitário para execução rápida
 ```
 
 ---
 
-## Como Executar
+## 🚀 Como Executar
 
-O analisador sintático aceita como argumento o caminho de um arquivo `.jack` específico ou de um diretório contendo múltiplos arquivos `.jack`:
+O compilador aceita como argumento o caminho de um arquivo `.jack` individual ou de um diretório contendo múltiplos arquivos `.jack`:
 
 ```bash
 # Executar para um arquivo individual
-python -m src.jack_analyzer tests/fixtures/Square.jack
+python src/jack_analyzer.py tests/fixtures/Square.jack
 
 # Executar para um diretório completo
-python src/jack_analyzer.py tests/fixtures/
+python src/jack_analyzer.py "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\11\Square"
 ```
 
-Ao executar o comando, o compilador processa a sintaxe e gera o arquivo da Árvore Sintática em formato XML (com o sufixo `P_my.xml`) no mesmo diretório de entrada.
+Ao executar o comando, o compilador processa o código Jack, resolve símbolos e gera o arquivo correspondente em **bytecode VM (`.vm`)** no mesmo diretório de entrada.
 
 ---
 
-## Validação e Testes Automatizados
+## 🧪 Validação e Testes Automatizados
 
-A suíte de testes utiliza arquivos oficiais do *Nand2Tetris* armazenados em `tests/fixtures/` e compara os arquivos XML gerados com os gabaritos esperados, ignorando divergências superficiais de indentação.
+A suíte de testes utiliza os programas oficiais do *Nand2Tetris* armazenados em `tests/fixtures/` (`Square`, `Main`, `SquareGame`) e compara o bytecode VM gerado instrução por instrução contra os gabaritos esperados.
 
-Para rodar os testes unitários e de integração, execute:
+Para rodar a validação do gerador de código VM, execute:
 
 ```bash
-pytest tests/
+pytest tests/test_codegen.py
 ```
 
 ### Saída Esperada dos Testes:
@@ -92,40 +97,81 @@ platform win32 -- Python 3.13.11, pytest-9.1.1, pluggy-1.5.0
 rootdir: C:\Users\EudFr\OneDrive\Documentos\VSCODEPROJETOS\jackcompiler\jackcompiler
 collected 3 items                                                                                                                         
 
-tests\test_parser.py ...                                                                                                           [100%]
+tests\test_codegen.py ...                                                                                                          [100%]
 
-=========================================================== 3 passed in 0.07s ============================================================
+=========================================================== 3 passed in 0.08s ============================================================
 ```
 
 ---
 
-##  Exemplo Prático de Funcionamento
+## 🏛️ Arquitetura do Compilador e Gerador de Código VM
 
-Abaixo está a comparação entre o código-fonte original da linguagem Jack e o resultado gerado pelo nosso analisador léxico:
+O processo de compilação da Unidade 2 (Projeto 11) opera através da integração de quatro componentes principais:
 
-### 1. Código-Fonte Original (`Square.jack`)
-Código bruto com comentários, espaços e quebras de linha:
+1. **`SymbolTable` (Tabela de Símbolos):**
+   - Mapeia identificadores para seus respectivos tipos (`int`, `boolean`, `char`, `className`), categorias (`STATIC`, `FIELD`, `ARG`, `VAR`) e índices numéricos nos segmentos da VM.
+   - Gerencia escopos aninhados de **Classe** e de **Subrotina**.
 
-![Código Fonte Jack](assets/codigo_jack.png)
+2. **`VMWriter` (Emissor VM):**
+   - Abstrai a sintaxe da VM da arquitetura Hack, fornecendo rotinas como `write_push`, `write_pop`, `write_arithmetic`, `write_label`, `write_goto`, `write_if`, `write_call`, `write_function` e `write_return`.
+
+3. **`CompilationEngine` & Mixins (`StatementsMixin`, `ExpressionsMixin`):**
+   - **Prólogos de Subrotinas:** Alocação de memória no Heap (`Memory.alloc`) para construtores (`constructor`) e ancoragem do ponteiro de instância (`pointer 0`) para métodos (`method`).
+   - **Controle de Fluxo:** Geração de rótulos únicos (`IF_TRUE`, `IF_FALSE`, `IF_END`, `WHILE_EXP`, `WHILE_END`) para tradução de blocos `if/else` e laços `while`.
+   - **Manipulação de Arrays:** Armazenamento temporário do ponteiro via `temp 0` e ajuste dos segmentos `pointer 1` / `that 0` para leituras e atribuições seguras do tipo `a[i] = expr`.
 
 ---
 
-### 2. Saída do Analisador Léxico (`SquareT_my.xml`)
-Resultado gerado pelo `JackTokenizer` após remover comentários/espaços e classificar cada palavra em tokens:
+## 🎮 Execução no VM Emulator (Nand2Tetris)
 
-![Saída do Analisador Léxico](assets/tokens_xml.png)
+Para testar a execução interativa dos programas compilados no **VM Emulator** oficial:
 
-> **O que aconteceu na transformação:** 
-> O analisador léxico limpou todo o texto do código-fonte (removendo comentários `//` e `/* */`) e converteu cada palavra/símbolo em sua respectiva tag de token (`keyword`, `identifier`, `symbol`, etc.), gerando a lista exata esperada pelo compilador.
+1. Compile o diretório do projeto desejado:
+   ```powershell
+   python src/jack_analyzer.py "C:\Users\EudFr\Downloads\nand2tetris\nand2tetris\projects\11\Square"
+   ```
+2. Abra o **VM Emulator** (`VMEmulator.bat`).
+3. Clique em **Load Program** (ícone da pasta amarela) e selecione a pasta do projeto (ex: `Square`).
+4. Selecione **Sim** na janela referente ao carregamento do Jack OS embutido (*built-in OS*).
+5. Defina a velocidade para *No Animation* e clique em **Play (`▶`)**.
 
-### 2. Saída do Analisador Sintático (`MainP_my.xml`)
-A estrutura hierárquica em XML gerada pelo *Parser* por descida recursiva:
+---
 
-![Árvore Sintática em XML](assets/arvore_sintatica_xml.png)
+## 🔄 Exemplo de Tradução (Jack -> VM)
 
-* **Descrição:** O XML final gerado representa a **Árvore Sintática (Parse Tree)** do programa. Enquanto o analisador léxico produz apenas uma lista plana de tokens soltos, o analisador sintático organiza esses tokens dentro das regras gramaticais da linguagem Jack — agrupando elementos em tags estruturais como `<class>`, `<classVarDec>`, `<subroutineDec>`, `<subroutineBody>`, `<varDec>` e `<statements>`.
+### Código Fonte em Jack:
+```jack
+method void moveSquare() {
+    if (direction = 1) {
+        do square.up();
+    }
+    return;
+}
+```
 
-## Referências
+### Bytecode VM Gerado:
+```text
+function SquareGame.moveSquare 0
+push argument 0
+pop pointer 0
+push this 1
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+call Square.up 1
+pop temp 0
+label IF_FALSE0
+push constant 0
+return
+```
 
-Nand2Tetris — Projeto 10
-Livro: The Elements of Computing Systems — Capítulo 10
+---
+
+## 📚 Referências
+
+- **Nand2Tetris — Projeto 10:** *Compiler I: Syntax Analysis*
+- **Nand2Tetris — Projeto 11:** *Compiler II: Code Generation*
+- **Livro:** *The Elements of Computing Systems* (Nisan & Schocken) — Capítulos 10 e 11.

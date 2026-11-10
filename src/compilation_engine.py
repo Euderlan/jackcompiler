@@ -15,7 +15,7 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         self.symbol_table = SymbolTable()
         self.vm_writer = VMWriter(output_vm_path)
         self.class_name = ""
-        self.label_index = 0  # Gerador de rótulos únicos para if/while
+        self.label_index = 0
 
     def get_next_label(self, prefix: str) -> str:
         """Gera rótulos únicos no formato PREFIX_N (ex: IF_TRUE0)."""
@@ -27,23 +27,21 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         """Compila a classe completa registrando símbolos e subrotinas."""
         self._process("class")
         self.class_name = self.tokenizer.current_token
-        self._process("identifier")  # className
+        self._process("identifier")
         self._process("{")
 
-        # Processa declarações de variáveis de classe ('static' | 'field')
         while self.tokenizer.current_token in ('static', 'field'):
             self.compile_class_var_dec()
 
-        # Processa subrotinas ('constructor' | 'function' | 'method')
         while self.tokenizer.current_token in ('constructor', 'function', 'method'):
             self.compile_subroutine()
 
         self._process("}")
-        self.vm_writer.close()
+        self.close()
 
     def compile_class_var_dec(self):
         """Registra variáveis de classe ('static' ou 'field') na SymbolTable."""
-        kind = self.tokenizer.current_token  # 'static' ou 'field'
+        kind = self.tokenizer.current_token
         self._process(kind)
 
         type_ = self.tokenizer.current_token
@@ -65,7 +63,7 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         """Compila subrotina (construtor, função ou método) e emite prólogo VM."""
         self.symbol_table.start_subroutine()
 
-        subroutine_kind = self.tokenizer.current_token  # 'constructor', 'function', 'method'
+        subroutine_kind = self.tokenizer.current_token
         self._process(subroutine_kind)
 
         return_type = self.tokenizer.current_token
@@ -74,26 +72,24 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
         subroutine_name = self.tokenizer.current_token
         self._process("identifier")
 
-        # Em métodos, argument 0 é a própria instância ('this')
         if subroutine_kind == 'method':
-            self.symbol_table.define("this", self.class_name, "ARG")
+            self.symbol_table.define("this", self.class_name, "arg")
 
         self._process("(")
         self.compile_parameter_list()
         self._process(")")
 
-        # Compila o corpo e gera as instruções de inicialização
         self.compile_subroutine_body(subroutine_kind, subroutine_name)
 
     def compile_parameter_list(self):
-        """Registra parâmetros da subrotina na SymbolTable como 'ARG'."""
+        """Registra parâmetros da subrotina na SymbolTable como 'arg'."""
         if self.tokenizer.current_token != ')':
             type_ = self.tokenizer.current_token
             self._process_type()
 
             name = self.tokenizer.current_token
             self._process("identifier")
-            self.symbol_table.define(name, type_, "ARG")
+            self.symbol_table.define(name, type_, "arg")
 
             while self.tokenizer.current_token == ',':
                 self._process(",")
@@ -102,24 +98,21 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
 
                 name = self.tokenizer.current_token
                 self._process("identifier")
-                self.symbol_table.define(name, type_, "ARG")
+                self.symbol_table.define(name, type_, "arg")
 
     def compile_subroutine_body(self, subroutine_kind: str, subroutine_name: str):
         """Compila declarações de variáveis locais, emite 'function' e grava o prólogo."""
         self._process("{")
 
-        # Povoa variáveis locais (var) na SymbolTable
         while self.tokenizer.current_token == 'var':
             self.compile_var_dec()
 
-        # Emite instrução 'function ClassName.subroutineName nLocals'
-        n_locals = self.symbol_table.var_count("VAR")
+        n_locals = self.symbol_table.var_count("var")
         full_name = f"{self.class_name}.{subroutine_name}"
         self.vm_writer.write_function(full_name, n_locals)
 
-        # Prólogos dependentes do tipo de subrotina
         if subroutine_kind == 'constructor':
-            n_fields = self.symbol_table.var_count("FIELD")
+            n_fields = self.symbol_table.var_count("field")
             self.vm_writer.write_push("constant", n_fields)
             self.vm_writer.write_call("Memory.alloc", 1)
             self.vm_writer.write_pop("pointer", 0)
@@ -127,13 +120,12 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
             self.vm_writer.write_push("argument", 0)
             self.vm_writer.write_pop("pointer", 0)
 
-        # Compila os comandos (statements) da subrotina
         self.compile_statements()
 
         self._process("}")
 
     def compile_var_dec(self):
-        """Registra variáveis locais ('var') na SymbolTable como 'VAR'."""
+        """Registra variáveis locais ('var') na SymbolTable como 'var'."""
         self._process("var")
 
         type_ = self.tokenizer.current_token
@@ -141,12 +133,17 @@ class CompilationEngine(StatementsMixin, ExpressionsMixin, EngineBase):
 
         name = self.tokenizer.current_token
         self._process("identifier")
-        self.symbol_table.define(name, type_, "VAR")
+        self.symbol_table.define(name, type_, "var")
 
         while self.tokenizer.current_token == ',':
             self._process(",")
             name = self.tokenizer.current_token
             self._process("identifier")
-            self.symbol_table.define(name, type_, "VAR")
+            self.symbol_table.define(name, type_, "var")
 
         self._process(";")
+
+    def close(self):
+        """Fecha o arquivo .vm gerado."""
+        if hasattr(self, 'vm_writer'):
+            self.vm_writer.close()

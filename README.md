@@ -4,13 +4,13 @@ Este repositório contém a implementação integrada do **Compilador Jack** (`J
 
 ---
 
-## 👥 Identificação da Dupla
+##  Identificação da Dupla
 - **Integrante 1:** Euderlan Freire da Silva Abreu — **Matrícula:** 20250071198
 - **Integrante 2:** Yuram Almeida Santos — **Matrícula:** 20260060213
 
 ---
 
-## 🛠️ Tecnologias e Especificações
+##  Tecnologias e Especificações
 - **Linguagem:** Python 3.8+
 - **Framework de Teste:** `pytest`
 - **Paradigma:** Orientação a Objetos com Descida Recursiva (*Recursive Descent Parsing*) e arquitetura modular baseada em *Mixins*.
@@ -18,7 +18,7 @@ Este repositório contém a implementação integrada do **Compilador Jack** (`J
 
 ---
 
-## 📥 Instalação e Configuração
+##  Instalação e Configuração
 
 Para clonar e configurar o repositório em sua máquina local, siga os passos abaixo:
 
@@ -35,7 +35,7 @@ pip install pytest
 
 ---
 
-## 📁 Estrutura do Repositório
+##  Estrutura do Repositório
 
 ```text
 jackcompiler/
@@ -63,7 +63,7 @@ jackcompiler/
 
 ---
 
-## 🚀 Como Executar
+##  Como Executar
 
 O compilador aceita como argumento o caminho de um arquivo `.jack` individual ou de um diretório contendo múltiplos arquivos `.jack`:
 
@@ -79,7 +79,7 @@ Ao executar o comando, o compilador processa o código Jack, resolve símbolos e
 
 ---
 
-## 🧪 Validação e Testes Automatizados
+##  Validação e Testes Automatizados
 
 A suíte de testes utiliza os programas oficiais do *Nand2Tetris* armazenados em `tests/fixtures/` (`Square`, `Main`, `SquareGame`) e compara o bytecode VM gerado instrução por instrução contra os gabaritos esperados.
 
@@ -104,7 +104,7 @@ tests\test_codegen.py ...                                                       
 
 ---
 
-## 🏛️ Arquitetura do Compilador e Gerador de Código VM
+##  Arquitetura do Compilador e Gerador de Código VM
 
 O processo de compilação da Unidade 2 (Projeto 11) opera através da integração de quatro componentes principais:
 
@@ -122,7 +122,7 @@ O processo de compilação da Unidade 2 (Projeto 11) opera através da integraç
 
 ---
 
-## 🎮 Execução no VM Emulator (Nand2Tetris)
+##  Execução no VM Emulator (Nand2Tetris)
 
 Para testar a execução interativa dos programas compilados no **VM Emulator** oficial:
 
@@ -137,7 +137,7 @@ Para testar a execução interativa dos programas compilados no **VM Emulator** 
 
 ---
 
-## 🔄 Exemplo de Tradução (Jack -> VM)
+##  Exemplo de Tradução (Jack -> VM)
 
 ### Código Fonte em Jack:
 ```jack
@@ -170,7 +170,7 @@ return
 
 ---
 
-## 📚 Referências
+##  Referências
 
 - **Nand2Tetris — Projeto 10:** *Compiler I: Syntax Analysis*
 - **Nand2Tetris — Projeto 11:** *Compiler II: Code Generation*
